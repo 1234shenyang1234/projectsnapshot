@@ -25,6 +25,9 @@ android.logcat_filters = *:S python:D
 android.copy_libs = 1
 android.archs = arm64-v8a, armeabi-v7a
 
+# Use existing NDK instead of downloading
+android.ndk_path = $ANDROID_NDK_HOME
+
 # p4a configuration
 p4a.branch = master
 p4a.bootstrap = sdl2
