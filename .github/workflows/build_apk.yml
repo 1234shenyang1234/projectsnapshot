@@ -21,13 +21,24 @@ jobs:
         run: |
           echo "Building APK..."
           buildozer -v android debug 2>&1 | tee buildozer.log
+          echo "Build completed. Checking for APK files..."
+          ls -la
+          ls -la bin/ 2>/dev/null || echo "bin/ directory not found"
+      
+      - name: Find APK files
+        run: |
+          echo "Finding APK files in the project..."
+          find . -name "*.apk" -type f
       
       - name: Upload APK
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: bin/*.apk
+          path: |
+            bin/*.apk
+            ./*.apk
+          if-no-files-found: warn
       
       - name: Upload build logs
         if: always()
