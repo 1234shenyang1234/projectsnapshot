@@ -1,0 +1,20 @@
+# 创建基本的 buildozer.spec 文件
+echo '[app]
+title = ProjectSnapshot
+package.name = projectsnapshot
+package.domain = com.projectsnapshot
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas
+version = 0.1
+requirements = python3,kivy
+orientation = portrait
+osx.python_version = 3
+osx.kivy_version = 2.3.1
+fullscreen = 0
+android.api = 33
+android.sdk = /home/user/Android/Sdk
+android.ndk = /home/user/Android/Sdk/ndk/25.2.9519653
+android.ndk_api = 21
+android.arch = arm64-v8a
+p4a.source_dir = .buildozer/android/platform/python-for-android
+p4a.pip_args = --break-system-packages' > buildozer.spec

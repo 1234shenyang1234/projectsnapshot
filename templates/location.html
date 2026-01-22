@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目随手拍 - 定位</title>
+    <!-- 引入Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- 引入Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #1e90ff;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        /* 地图控件样式 */
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-group {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            padding: 5px;
+        }
+        
+        .control-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-btn {
+            padding: 8px;
+            border: none;
+            background-color: white;
+            cursor: pointer;
+            font-size: 14px;
+            text-align: left;
+            border-radius: 2px;
+        }
+        
+        .control-btn.active {
+            background-color: #1e90ff;
+            color: white;
+        }
+        
+        /* 点位信息弹窗 */
+        .popup-content {
+            max-width: 300px;
+        }
+        
+        .popup-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .popup-info {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .popup-photo {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        
+        .popup-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .popup-btn {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .popup-btn-primary {
+            background-color: #1e90ff;
+            color: white;
+        }
+        
+        /* 测距结果样式 */
+        .distance-info {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .distance-item {
+            margin: 5px 0;
+        }
+        
+        .total-distance {
+            font-weight: bold;
+            color: #1e90ff;
+        }
+        
+        /* 底部导航栏 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: #666;
+            text-decoration: none;
+        }
+        
+        .nav-item.active {
+            color: #1e90ff;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-text {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>定位</h2>
+            <div class="header-actions">
+                <button class="btn" onclick="toggleMeasure()">测距</button>
+                <button class="btn" onclick="createNewPoint()">新建点位</button>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="map"></div>
+            
+            <!-- 地图控件 -->
+            <div class="map-controls">
+                <!-- 定位控制 -->
+                <div class="control-group">
+                    <div class="control-title">定位</div>
+                    <div class="btn-group">
+                        <button class="control-btn" onclick="locateMe()">定位到我</button>
+                    </div>
+                </div>
+                <!-- 底图切换 -->
+                <div class="control-group">
+                    <div class="control-title">底图</div>
+                    <div class="btn-group">
+                        <button class="control-btn active" onclick="switchBaseMap('standard')">标准底图</button>
+                        <button class="control-btn" onclick="switchBaseMap('satellite')">卫星底图</button>
+                    </div>
+                </div>
+                
+                <!-- 测距控制 -->
+                <div class="control-group" id="measure-controls" style="display: none;">
+                    <div class="control-title">测距</div>
+                    <div class="btn-group">
+                        <button class="control-btn" onclick="startMeasure()">开始测距</button>
+                        <button class="control-btn" onclick="clearMeasure()">清除测距</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 测距结果显示 -->
+            <div class="distance-info" id="distance-info">
+                <div id="distance-list"></div>
+                <div class="total-distance" id="total-distance"></div>
+            </div>
+        </div>
+        
+        <!-- 底部导航栏 -->
+        <div class="bottom-nav">
+            <a href="/album" class="nav-item">
+                <div class="nav-icon">📷</div>
+                <div class="nav-text">相册</div>
+            </a>
+            <a href="/camera" class="nav-item">
+                <div class="nav-icon">📸</div>
+                <div class="nav-text">拍照</div>
+            </a>
+            <a href="/location" class="nav-item active">
+                <div class="nav-icon">📍</div>
+                <div class="nav-text">定位</div>
+            </a>
+            <a href="/template" class="nav-item">
+                <div class="nav-icon">📋</div>
+                <div class="nav-text">模板</div>
+            </a>
+            <a href="/profile" class="nav-item">
+                <div class="nav-icon">👤</div>
+                <div class="nav-text">我的</div>
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        // 地图初始化
+        let map;
+        let standardMapLayer;
+        let satelliteMapLayer;
+        let currentBaseMap = 'standard';
+        let markers = [];
+        
+        // 测距相关
+        let measureMode = false;
+        let measurePolyline;
+        let measurePoints = [];
+        let distanceInfo = document.getElementById('distance-info');
+        let distanceList = document.getElementById('distance-list');
+        let totalDistance = document.getElementById('total-distance');
+        
+        // 初始化地图
+        function initMap() {
+            // 确保地图容器存在
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) {
+                console.error('地图容器不存在');
+                return;
+            }
+            
+            // 设置地图容器的高度
+            mapContainer.style.height = (window.innerHeight - 100) + 'px';
+            
+            // 创建地图，使用高德地图瓦片服务
+            map = L.map('map', { zoomControl: false }).setView([39.9042, 116.4074], 13); // 默认北京坐标
+            
+            // 添加缩放控件
+            L.control.zoom({ position: 'topright' }).addTo(map);
+            
+            // 创建高德标准底图图层
+            standardMapLayer = L.tileLayer('https://webrd01.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+                attribution: '© 高德地图',
+                maxZoom: 18
+            }).addTo(map);
+            
+            // 创建高德卫星底图图层
+            satelliteMapLayer = L.tileLayer('https://webst01.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}', {
+                attribution: '© 高德地图',
+                maxZoom: 18
+            });
+            
+            // 加载点位数据
+            loadPoints();
+            
+            // 监听地图点击事件，用于测距
+            map.on('click', handleMapClick);
+        }
+        
+        // 定位到当前位置
+        let currentLocationMarker = null;
+        
+        function locateMe() {
+            // 检查浏览器是否支持Geolocation API
+            if (!navigator.geolocation) {
+                alert('您的浏览器不支持定位功能');
+                return;
+            }
+            
+            // 设置定位选项，提高精度，缩短超时时间
+            const options = {
+                enableHighAccuracy: true, // 启用高精度定位
+                timeout: 5000, // 超时时间5秒
+                maximumAge: 0 // 不使用缓存位置
+            };
+            
+            // 显示定位中提示
+            alert('正在定位...');
+            
+            // 获取当前位置
+            navigator.geolocation.getCurrentPosition(
+                // 成功回调
+                function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    // 将地图中心移动到当前位置
+                    map.setView([latitude, longitude], 18);
+                    
+                    // 移除旧的位置标记
+                    if (currentLocationMarker) {
+                        map.removeLayer(currentLocationMarker);
+                    }
+                    
+                    // 创建新的位置标记
+                    currentLocationMarker = L.marker([latitude, longitude])
+                        .addTo(map)
+                        .bindPopup(`
+                            <div class="popup-content">
+                                <div class="popup-title">当前位置</div>
+                                <div class="popup-info">
+                                    <div>纬度: ${latitude.toFixed(6)}</div>
+                                    <div>经度: ${longitude.toFixed(6)}</div>
+                                    <div>精度: ${accuracy.toFixed(1)} 米</div>
+                                    <div>定位时间: ${new Date().toLocaleString()}</div>
+                                </div>
+                            </div>
+                        `)
+                        .openPopup();
+                    
+                    // 添加精度圆圈
+                    const accuracyCircle = L.circle([latitude, longitude], {
+                        radius: accuracy,
+                        color: '#1e90ff',
+                        fillColor: '#1e90ff',
+                        fillOpacity: 0.1
+                    }).addTo(map);
+                    
+                    // 5秒后移除精度圆圈
+                    setTimeout(() => {
+                        map.removeLayer(accuracyCircle);
+                    }, 5000);
+                    
+                    console.log('定位成功:', position);
+                },
+                // 失败回调
+                function(error) {
+                    let errorMessage;
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = '用户拒绝了定位请求';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = '定位信息不可用';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = '定位超时，请重试';
+                            break;
+                        case error.UNKNOWN_ERROR:
+                            errorMessage = '发生未知错误';
+                            break;
+                    }
+                    alert('定位失败: ' + errorMessage);
+                    console.error('定位失败:', error);
+                },
+                // 定位选项
+                options
+            );
+        }
+        
+        // 页面加载完成后初始化地图
+        document.addEventListener('DOMContentLoaded', initMap);
+        
+        // 窗口大小变化时重新设置地图高度
+        window.addEventListener('resize', function() {
+            const mapContainer = document.getElementById('map');
+            if (mapContainer) {
+                mapContainer.style.height = (window.innerHeight - 100) + 'px';
+                if (map) {
+                    map.invalidateSize();
+                }
+            }
+        });
+        
+        // 加载点位数据
+        function loadPoints() {
+            fetch('/get_points')
+                .then(response => response.json())
+                .then(data => {
+                    // 清除现有标记
+                    markers.forEach(marker => map.removeLayer(marker));
+                    markers = [];
+                    
+                    // 添加新标记
+                    data.forEach(point => {
+                        const marker = L.marker([point.latitude, point.longitude])
+                            .addTo(map)
+                            .bindPopup(createPopupContent(point));
+                        
+                        markers.push(marker);
+                    });
+                })
+                .catch(error => {
+                    console.error('加载点位数据失败:', error);
+                });
+        }
+        
+        // 创建弹窗内容
+        function createPopupContent(point) {
+            let content = `
+                <div class="popup-content">
+                    <div class="popup-title">${point.project_name || '未命名点位'}</div>
+                    <div class="popup-info">
+                        <div>项目分类: ${point.project_category || '无'}</div>
+                        <div>项目乡镇: ${point.project_town || '无'}</div>
+                        <div>缺陷类型: ${point.defect_type || '无'}</div>
+                        <div>项目状态: ${point.project_status || '计划'}</div>
+                        <div>创建时间: ${point.created_at || point.timestamp}</div>
+                    </div>
+            `;
+            
+            // 如果有照片，添加照片显示
+            if (point.filename) {
+                content += `<img src="/static/photos/${point.filename}" class="popup-photo" alt="点位照片">`;
+            }
+            
+            // 添加操作按钮
+            content += `
+                    <div class="popup-actions">
+                        <button class="popup-btn popup-btn-primary" onclick="sendPoint(${point.id})">发送</button>
+                        <button class="popup-btn" onclick="showPointDetail(${point.id})">详情</button>
+                    </div>
+                </div>
+            `;
+            
+            return content;
+        }
+        
+        // 底图切换
+        function switchBaseMap(mapType) {
+            if (mapType === currentBaseMap) return;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.control-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 切换图层
+            if (mapType === 'standard') {
+                map.removeLayer(satelliteMapLayer);
+                map.addLayer(standardMapLayer);
+            } else {
+                map.removeLayer(standardMapLayer);
+                map.addLayer(satelliteMapLayer);
+            }
+            
+            currentBaseMap = mapType;
+        }
+        
+        // 切换测距模式
+        function toggleMeasure() {
+            measureMode = !measureMode;
+            const measureControls = document.getElementById('measure-controls');
+            measureControls.style.display = measureMode ? 'block' : 'none';
+            
+            if (!measureMode) {
+                clearMeasure();
+            }
+        }
+        
+        // 开始测距
+        function startMeasure() {
+            map.dragging.disable();
+            map.on('click', handleMeasureClick);
+            alert('点击地图开始绘制测距路径，双击结束');
+        }
+        
+        // 处理地图点击事件
+        function handleMapClick(e) {
+            // 非测距模式下不处理
+            if (!measureMode) return;
+        }
+        
+        // 处理测距点击事件
+        function handleMeasureClick(e) {
+            measurePoints.push(e.latlng);
+            
+            // 如果是第一个点，创建新的折线
+            if (measurePoints.length === 1) {
+                measurePolyline = L.polyline([e.latlng], {
+                    color: 'red',
+                    weight: 3,
+                    opacity: 0.7,
+                    dashArray: '10, 10'
+                }).addTo(map);
+            } else {
+                // 添加新点到折线
+                measurePolyline.addLatLng(e.latlng);
+                // 计算距离
+                calculateDistance();
+            }
+            
+            // 添加标记点
+            L.circleMarker(e.latlng, {
+                radius: 5,
+                fillColor: 'red',
+                color: 'white',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+        }
+        
+        // 计算距离
+        function calculateDistance() {
+            if (measurePoints.length < 2) return;
+            
+            let totalDist = 0;
+            let distanceItems = '';
+            
+            for (let i = 0; i < measurePoints.length - 1; i++) {
+                const dist = measurePoints[i].distanceTo(measurePoints[i + 1]);
+                totalDist += dist;
+                
+                // 格式化距离，小于1000米显示米，否则显示公里
+                let formattedDist;
+                if (dist < 1000) {
+                    formattedDist = dist.toFixed(2) + ' 米';
+                } else {
+                    formattedDist = (dist / 1000).toFixed(2) + ' 公里';
+                }
+                
+                distanceItems += `<div class="distance-item">段 ${i + 1}: ${formattedDist}</div>`;
+            }
+            
+            // 格式化总距离
+            let formattedTotal;
+            if (totalDist < 1000) {
+                formattedTotal = totalDist.toFixed(2) + ' 米';
+            } else {
+                formattedTotal = (totalDist / 1000).toFixed(2) + ' 公里';
+            }
+            
+            // 更新距离信息
+            distanceList.innerHTML = distanceItems;
+            totalDistance.innerHTML = `总距离: ${formattedTotal}`;
+            distanceInfo.style.display = 'block';
+        }
+        
+        // 清除测距
+        function clearMeasure() {
+            if (measurePolyline) {
+                map.removeLayer(measurePolyline);
+                measurePolyline = null;
+            }
+            measurePoints = [];
+            distanceInfo.style.display = 'none';
+            map.off('click', handleMeasureClick);
+            map.dragging.enable();
+        }
+        
+        // 新建点位
+        function createNewPoint() {
+            // 跳转到拍照页面
+            window.location.href = '/camera';
+        }
+        
+        // 发送点位
+        function sendPoint(pointId) {
+            // 这里实现发送功能，暂时使用alert模拟
+            alert(`发送点位 ${pointId}，支持kmz格式发送到微信、QQ、邮箱等`);
+        }
+        
+        // 显示点位详情
+        function showPointDetail(pointId) {
+            // 跳转到记录详情页面
+            window.location.href = `/record/${pointId}`;
+        }
+    </script>
+</body>
+</html>

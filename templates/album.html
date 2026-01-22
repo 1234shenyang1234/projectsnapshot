@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目随手拍 - 相册</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #1e90ff;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header h2 {
+            font-size: 20px;
+            margin: 0 auto;
+        }
+        
+        .add-btn {
+            background: none;
+            color: white;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        /* 顶部分类导航 */
+        .top-categories {
+            background-color: white;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .category-nav {
+            display: flex;
+            padding: 10px 15px;
+            gap: 10px;
+            overflow-x: auto;
+        }
+        
+        .category-btn {
+            padding: 6px 12px;
+            background-color: white;
+            border: 1px solid #d9d9d9;
+            border-radius: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .category-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        
+        .category-btn.active {
+            background-color: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        
+        /* 分类筛选下拉菜单 */
+        .category-filter {
+            background-color: #fafafa;
+            padding: 15px;
+            border-bottom: 1px solid #e8e8e8;
+            display: none;
+        }
+        
+        .category-filter.active {
+            display: block;
+        }
+        
+        .filter-row {
+            margin-bottom: 15px;
+        }
+        
+        .filter-row label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .filter-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filter-option {
+            padding: 6px 12px;
+            background-color: white;
+            border: 1px solid #d9d9d9;
+            border-radius: 16px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        
+        .filter-option:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+        
+        .filter-option.active {
+            background-color: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        
+        /* 时间筛选栏 */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background-color: #fafafa;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
+        .filter-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .filter-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .filter-select {
+            font-size: 14px;
+            padding: 6px 10px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.primary {
+            background-color: #1890ff;
+            color: white;
+        }
+        
+        .filter-btn.primary:hover {
+            background-color: #40a9ff;
+        }
+        
+        .filter-btn.success {
+            background-color: #52c41a;
+            color: white;
+        }
+        
+        .filter-btn.warning {
+            background-color: #faad14;
+            color: white;
+        }
+        
+        /* 相册内容 */
+        .album-content {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 60px; /* 为底部导航栏预留空间 */
+        }
+        
+        /* 日期分组 */
+        .date-group {
+            margin-bottom: 20px;
+        }
+        
+        .date-header {
+            padding: 10px 15px;
+            background-color: #fafafa;
+            font-weight: bold;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 照片列表项 */
+        .photo-list {
+            list-style: none;
+        }
+        
+        .photo-list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e8e8e8;
+            transition: background-color 0.2s;
+        }
+        
+        .photo-list-item:hover {
+            background-color: #fafafa;
+        }
+        
+        .photo-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+        
+        .photo-details {
+            flex: 1;
+        }
+        
+        .photo-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .photo-type {
+            display: inline-block;
+            background-color: #ff7f50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        
+        .photo-actions {
+            font-size: 20px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .no-photos {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        /* 删除操作栏 */
+        .delete-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background-color: #fff5f5;
+            border-top: 1px solid #ffccc7;
+            display: none;
+        }
+        
+        .delete-bar.active {
+            display: flex;
+        }
+        
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .selected-count {
+            color: #ff4d4f;
+            font-weight: bold;
+        }
+        
+        .delete-btn {
+            padding: 6px 12px;
+            background-color: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* 底部导航栏 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: #666;
+            text-decoration: none;
+        }
+        
+        .nav-item.active {
+            color: #1e90ff;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-text {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="width: 40px;"></div> <!-- 占位 -->
+            <h2>相册</h2>
+            <button class="add-btn" onclick="window.location.href='/camera'">+</button>
+        </div>
+        
+        <!-- 顶部分类导航 -->
+        <div class="top-categories">
+            <div class="category-nav">
+                <button class="category-btn" data-category="project_town">项目所属乡镇</button>
+                <button class="category-btn" data-category="project_category">项目分类</button>
+                <button class="category-btn" data-category="defect_type">缺陷类型</button>
+                <button class="category-btn" data-category="project_status">项目状态</button>
+                <button class="category-btn active" data-category="all">全部类型</button>
+            </div>
+        </div>
+        
+        <!-- 分类筛选选项 -->
+        <div class="category-filter" id="project_town_filter" style="display: none;">
+            <div class="filter-row">
+                <label>选择乡镇：</label>
+                <div class="filter-options" id="project_town_options">
+                    <span class="filter-option" data-value="">全部乡镇</span>
+                    <span class="filter-option" data-value="乡镇1">乡镇1</span>
+                    <span class="filter-option" data-value="乡镇2">乡镇2</span>
+                    <span class="filter-option" data-value="乡镇3">乡镇3</span>
+                    <span class="filter-option" data-value="乡镇4">乡镇4</span>
+                    <span class="filter-option" data-value="乡镇5">乡镇5</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category-filter" id="project_category_filter" style="display: none;">
+            <div class="filter-row">
+                <label>选择项目分类：</label>
+                <div class="filter-options" id="project_category_options">
+                    <span class="filter-option" data-value="">全部分类</span>
+                    <span class="filter-option" data-value="光伏">光伏</span>
+                    <span class="filter-option" data-value="风电">风电</span>
+                    <span class="filter-option" data-value="水电">水电</span>
+                    <span class="filter-option" data-value="火电">火电</span>
+                    <span class="filter-option" data-value="其他">其他</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category-filter" id="defect_type_filter" style="display: none;">
+            <div class="filter-row">
+                <label>选择缺陷类型：</label>
+                <div class="filter-options" id="defect_type_options">
+                    <span class="filter-option" data-value="">全部缺陷</span>
+                    <span class="filter-option" data-value="轻微">轻微</span>
+                    <span class="filter-option" data-value="一般">一般</span>
+                    <span class="filter-option" data-value="严重">严重</span>
+                    <span class="filter-option" data-value="紧急">紧急</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="category-filter" id="project_status_filter" style="display: none;">
+            <div class="filter-row">
+                <label>选择项目状态：</label>
+                <div class="filter-options" id="project_status_options">
+                    <span class="filter-option" data-value="">全部状态</span>
+                    <span class="filter-option" data-value="计划">计划</span>
+                    <span class="filter-option" data-value="进行中">进行中</span>
+                    <span class="filter-option" data-value="已完成">已完成</span>
+                    <span class="filter-option" data-value="已关闭">已关闭</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 时间筛选栏 -->
+        <div class="filter-bar">
+            <div style="display: flex; align-items: center; flex: 1;">
+                <span class="filter-label">按时间排列：</span>
+                <select class="filter-select" id="time-filter" style="margin-right: 15px;">
+                    <option>全部时间</option>
+                    <option>到期记录</option>
+                </select>
+                <button class="filter-btn" style="margin-right: 10px;" onclick="applyTimeFilter()">筛选</button>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="filter-btn" style="background-color: #52c41a;" onclick="exportExcel()">导出</button>
+                <input type="file" id="import-file" accept=".xlsx,.xls" style="display: none;" onchange="importExcel()">
+                <button class="filter-btn" style="background-color: #faad14;" onclick="document.getElementById('import-file').click()">导入</button>
+            </div>
+        </div>
+        
+        <!-- 分类内容区域 -->
+        <div class="category-content">
+            <!-- 分类列表将通过JavaScript动态生成 -->
+        </div>
+        
+        <!-- 删除操作栏 -->
+        <div class="filter-bar" id="delete-bar" style="display: none; background-color: #fff5f5; border-top: 1px solid #ffccc7;">
+            <div style="display: flex; align-items: center;">
+                <input type="checkbox" id="select-all" onclick="toggleSelectAll()" style="margin-right: 10px;">
+                <span class="filter-label" style="margin-right: 10px;">全选</span>
+                <span id="selected-count" style="color: #ff4d4f; font-weight: bold;">已选择: 0 项</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="filter-btn" style="background-color: #1890ff;" onclick="showPackageOptions()">打包发送</button>
+                <button class="filter-btn" style="background-color: #ff4d4f;" onclick="deleteSelected()">删除选中</button>
+            </div>
+        </div>
+        
+        <div class="album-content">
+            <!-- 日期分组示例 -->
+            <div class="date-group">
+                <div class="date-header">2025年03月29日 星期六</div>
+                <ul class="photo-list">
+                    <li class="photo-list-item" data-project_town="城镇" data-project_category="新建照片" data-defect_type="一般缺陷" data-project_status="计划" onclick="if(!isDeleteMode) window.location.href='/record/1'">
+                        <input type="checkbox" class="photo-checkbox" value="1" onclick="event.stopPropagation(); updateSelectedCount()" style="margin-right: 15px; width: 20px; height: 20px;">
+                        <img src="/static/photos/sample1.jpg" alt="缺陷隐患照片" class="photo-thumbnail">
+                        <div class="photo-details">
+                            <div class="photo-title">缺陷隐患照片</div>
+                            <span class="photo-type">计划</span>
+                        </div>
+                        <div class="photo-actions" onclick="event.stopPropagation(); toggleDeleteMode()">...</div>
+                    </li>
+                    <li class="photo-list-item" data-project_town="农村" data-project_category="验收照片" data-defect_type="轻微缺陷" data-project_status="进行中" onclick="if(!isDeleteMode) window.location.href='/record/2'">
+                        <input type="checkbox" class="photo-checkbox" value="2" onclick="event.stopPropagation(); updateSelectedCount()" style="margin-right: 15px; width: 20px; height: 20px;">
+                        <img src="/static/photos/sample2.jpg" alt="光伏现场照片" class="photo-thumbnail">
+                        <div class="photo-details">
+                            <div class="photo-title">光伏现场照片</div>
+                            <span class="photo-type">进行中</span>
+                        </div>
+                        <div class="photo-actions" onclick="event.stopPropagation(); toggleDeleteMode()">...</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- 数据库照片显示 -->
+            {% if photos %}
+                {% for photo in photos %}
+                    <div class="date-group">
+                        <div class="date-header">{{ photo[2][:10] }}</div>
+                        <ul class="photo-list">
+                            <li class="photo-list-item" 
+                                data-project_town="{{ photo[7] }}" 
+                                data-project_category="{{ photo[6] }}" 
+                                data-defect_type="{{ photo[8] }}" 
+                                data-project_status="{{ photo[9] }}" 
+                                onclick="if(!isDeleteMode) window.location.href='/record/{{ photo[0] }}'">
+                                <input type="checkbox" class="photo-checkbox" value="{{ photo[0] }}" onclick="event.stopPropagation(); updateSelectedCount()" style="margin-right: 15px; width: 20px; height: 20px;">
+                                <img src="/static/photos/{{ photo[1] }}" alt="照片" class="photo-thumbnail">
+                                <div class="photo-details">
+                                    <div class="photo-title">{{ photo[5] }}</div>
+                                    <span class="photo-type">{{ photo[9] }}</span>
+                                </div>
+                                <div class="photo-actions" onclick="event.stopPropagation(); toggleDeleteMode()">...</div>
+                            </li>
+                        </ul>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- 打包选项弹窗 -->
+            <div id="package-popup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; justify-content: center; align-items: center;">
+                <div style="background-color: white; border-radius: 8px; padding: 20px; width: 80%; max-width: 400px;">
+                    <h3 style="text-align: center; margin-bottom: 20px;">选择打包格式</h3>
+                    <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px;">
+                        <button class="filter-btn" style="background-color: #1890ff; padding: 10px 20px;" onclick="packageSelected('zip')">ZIP格式</button>
+                        <button class="filter-btn" style="background-color: #1890ff; padding: 10px 20px;" onclick="packageSelected('7z')">7Z格式</button>
+                    </div>
+                    <button class="filter-btn" style="background-color: #d9d9d9; padding: 10px 20px; width: 100%;" onclick="closePackagePopup()">取消</button>
+                </div>
+            </div>
+            
+            <script>
+                // 删除模式状态
+                let isDeleteMode = false;
+                
+                // 分类筛选状态
+                let currentCategory = 'all';
+                let currentFilters = {
+                    project_town: '',
+                    project_category: '',
+                    defect_type: '',
+                    project_status: ''
+                };
+                
+                // 切换删除模式
+                function toggleDeleteMode() {
+                    isDeleteMode = !isDeleteMode;
+                    const deleteBar = document.getElementById('delete-bar');
+                    const checkboxes = document.querySelectorAll('.photo-checkbox');
+                    const photoActions = document.querySelectorAll('.photo-actions');
+                    
+                    if (isDeleteMode) {
+                        deleteBar.style.display = 'flex';
+                        checkboxes.forEach(checkbox => checkbox.style.display = 'block');
+                        photoActions.forEach(action => action.textContent = '✓');
+                    } else {
+                        deleteBar.style.display = 'none';
+                        checkboxes.forEach(checkbox => {
+                            checkbox.style.display = 'none';
+                            checkbox.checked = false;
+                        });
+                        photoActions.forEach(action => action.textContent = '...');
+                        updateSelectedCount();
+                        document.getElementById('select-all').checked = false;
+                    }
+                }
+                
+                // 全选/取消全选
+                function toggleSelectAll() {
+                    const selectAll = document.getElementById('select-all');
+                    const checkboxes = document.querySelectorAll('.photo-checkbox');
+                    checkboxes.forEach(checkbox => checkbox.checked = selectAll.checked);
+                    updateSelectedCount();
+                }
+                
+                // 更新选中数量
+                function updateSelectedCount() {
+                    const checkboxes = document.querySelectorAll('.photo-checkbox:checked');
+                    const count = checkboxes.length;
+                    document.getElementById('selected-count').textContent = `已选择: ${count} 项`;
+                }
+                
+                // 删除选中项
+                function deleteSelected() {
+                    const checkboxes = document.querySelectorAll('.photo-checkbox:checked');
+                    const ids = Array.from(checkboxes).map(cb => cb.value);
+                    
+                    if (ids.length === 0) {
+                        alert('请先选择要删除的照片');
+                        return;
+                    }
+                    
+                    if (confirm(`确定要删除选中的 ${ids.length} 项吗？`)) {
+                        // 发送请求到后端删除选中项
+                        fetch('/delete_photos', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ ids: ids })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // 刷新页面
+                                location.reload();
+                            } else {
+                                alert('删除失败');
+                            }
+                        });
+                    }
+                }
+                
+                // 显示打包选项弹窗
+                function showPackageOptions() {
+                    const checkboxes = document.querySelectorAll('.photo-checkbox:checked');
+                    const ids = Array.from(checkboxes).map(cb => cb.value);
+                    
+                    if (ids.length === 0) {
+                        alert('请先选择要打包的照片');
+                        return;
+                    }
+                    
+                    document.getElementById('package-popup').style.display = 'flex';
+                }
+                
+                // 关闭打包选项弹窗
+                function closePackagePopup() {
+                    document.getElementById('package-popup').style.display = 'none';
+                }
+                
+                // 打包选中项
+                function packageSelected(format) {
+                    const checkboxes = document.querySelectorAll('.photo-checkbox:checked');
+                    const ids = Array.from(checkboxes).map(cb => cb.value);
+                    
+                    // 构建打包URL，包含选中的IDs和格式
+                    const packageUrl = `/package_photos?ids=${ids.join(',')}&format=${format}`;
+                    window.location.href = packageUrl;
+                    
+                    // 关闭弹窗
+                    closePackagePopup();
+                }
+                
+                // 初始化：隐藏所有复选框
+                document.addEventListener('DOMContentLoaded', function() {
+                    const checkboxes = document.querySelectorAll('.photo-checkbox');
+                    checkboxes.forEach(checkbox => checkbox.style.display = 'none');
+                    
+                    // 分类按钮点击事件
+                    document.querySelectorAll('.category-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            // 更新按钮状态
+                            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                            this.classList.add('active');
+                            
+                            // Get category type
+                            currentCategory = this.dataset.category;
+                            
+                            // Show corresponding filter options
+                            showFilterOptions(currentCategory);
+                        });
+                    });
+                    
+                    // 筛选选项点击事件
+                    document.querySelectorAll('.filter-option').forEach(option => {
+                        option.addEventListener('click', function() {
+                            const optionGroup = this.parentElement;
+                            const category = optionGroup.id.replace('_options', '');
+                            
+                            // 更新选项状态
+                            optionGroup.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+                            this.classList.add('active');
+                            
+                            // 更新筛选条件
+                            currentFilters[category] = this.dataset.value;
+                            
+                            // 应用筛选
+                            applyFilter();
+                        });
+                    });
+                });
+                
+                // 显示对应的筛选选项
+                function showFilterOptions(category) {
+                    // 隐藏所有筛选选项
+                    document.querySelectorAll('.category-filter').forEach(filter => {
+                        filter.style.display = 'none';
+                    });
+                    
+                    // 显示当前分类的筛选选项
+                    if (category !== 'all') {
+                        const filterElement = document.getElementById(`${category}_filter`);
+                        if (filterElement) {
+                            filterElement.style.display = 'block';
+                        }
+                    }
+                    
+                    // 重置当前分类的筛选条件
+                    if (category !== 'all') {
+                        currentFilters[category] = '';
+                        const optionsElement = document.getElementById(`${category}_options`);
+                        if (optionsElement) {
+                            optionsElement.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+                            optionsElement.querySelector('.filter-option[data-value=""]').classList.add('active');
+                        }
+                    }
+                    
+                    // 应用筛选
+                    applyFilter();
+                }
+                
+                // 应用筛选
+                function applyFilter() {
+                    const photoItems = document.querySelectorAll('.photo-list-item');
+                    const dateGroups = document.querySelectorAll('.date-group');
+                    
+                    photoItems.forEach(item => {
+                        let match = true;
+                        
+                        // Check each filter condition
+                        for (const [key, value] of Object.entries(currentFilters)) {
+                            if (value && item.dataset[key] !== value) {
+                                match = false;
+                                break;
+                            }
+                        }
+                        
+                        // Show or hide photo based on filter result
+                        if (match) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                    
+                    // 检查每个日期分组是否有可见的照片，如果没有则隐藏该分组
+                    dateGroups.forEach(group => {
+                        const visiblePhotos = group.querySelectorAll('.photo-list-item[style="display: flex;"]');
+                        if (visiblePhotos.length === 0) {
+                            group.style.display = 'none';
+                        } else {
+                            group.style.display = 'block';
+                        }
+                    });
+                }
+                
+                // 应用时间筛选
+                function applyTimeFilter() {
+                    const selectedTime = document.getElementById('time-filter').value;
+                    const photoItems = document.querySelectorAll('.photo-list-item');
+                    const dateGroups = document.querySelectorAll('.date-group');
+                    
+                    photoItems.forEach(item => {
+                        // 根据时间筛选逻辑，这里可以扩展
+                        // 目前暂时只根据分类筛选
+                        item.style.display = 'flex';
+                    });
+                    
+                    // 应用分类筛选
+                    applyFilter();
+                }
+                
+                // 导出Excel
+                function exportExcel() {
+                    const checkboxes = document.querySelectorAll('.photo-checkbox:checked');
+                    const ids = Array.from(checkboxes).map(cb => cb.value);
+                    
+                    if (ids.length === 0) {
+                        alert('请先选择要导出的照片');
+                        return;
+                    }
+                    
+                    // 构建导出URL，包含选中的IDs
+                    const exportUrl = `/export_photos?ids=${ids.join(',')}`;
+                    window.location.href = exportUrl;
+                }
+                
+                // 导入Excel
+                function importExcel() {
+                    const fileInput = document.getElementById('import-file');
+                    const file = fileInput.files[0];
+                    
+                    if (!file) {
+                        return;
+                    }
+                    
+                    // 创建FormData对象
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    // 发送请求到后端
+                    fetch('/import_photos', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`成功导入 ${data.updated} 条照片信息`);
+                            // 刷新页面
+                            location.reload();
+                        } else {
+                            alert(`导入失败: ${data.message}`);
+                        }
+                    })
+                    .catch(error => {
+                        alert(`导入失败: ${error.message}`);
+                    });
+                    
+                    // 重置文件输入
+                    fileInput.value = '';
+                }
+            </script>
+        </div>
+        
+        <!-- 底部导航栏 -->
+        <div class="bottom-nav">
+            <a href="/album" class="nav-item active">
+                <div class="nav-icon">📷</div>
+                <div class="nav-text">相册</div>
+            </a>
+            <a href="/camera" class="nav-item">
+                <div class="nav-icon">📸</div>
+                <div class="nav-text">拍照</div>
+            </a>
+            <a href="/location" class="nav-item">
+                <div class="nav-icon">📍</div>
+                <div class="nav-text">定位</div>
+            </a>
+            <a href="/template" class="nav-item">
+                <div class="nav-icon">📋</div>
+                <div class="nav-text">模板</div>
+            </a>
+            <a href="/profile" class="nav-item">
+                <div class="nav-icon">👤</div>
+                <div class="nav-text">我的</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,11 @@
+flask
+kivy
+plyer
+pillow
+pygame
+kivy-garden
+kivy.deps.glew
+kivy.deps.sdl2
+buildozer
+openpyxl
+py7zr

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目随手拍 - 水印设置</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #1e90ff;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header h2 {
+            font-size: 20px;
+        }
+        
+        .back-btn {
+            background: none;
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        
+        .settings-content {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .setting-label {
+            font-size: 18px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #1e90ff;
+        }
+        
+        input:focus + .slider {
+            box-shadow: 0 0 1px #1e90ff;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .project-name-input {
+            flex: 1;
+            margin-left: 20px;
+            padding: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .save-btn {
+            display: block;
+            width: 100%;
+            background-color: #1e90ff;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background-color 0.3s;
+        }
+        
+        .save-btn:hover {
+            background-color: #4169e1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="window.location.href='/profile'">返回</button>
+            <h2>水印设置</h2>
+            <div style="width: 40px;"></div> <!-- 占位 -->
+        </div>
+        
+        <div class="settings-content">
+            <form action="/save_settings" method="POST">
+                <div class="setting-item">
+                    <span class="setting-label">显示日期时间</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="show_datetime" {% if settings[1] %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">显示位置</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="show_location" {% if settings[2] %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">设计单位</span>
+                    <input type="text" name="design_unit" class="project-name-input" 
+                           placeholder="输入设计单位" value="{{ settings[3] }}">
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">设计人员</span>
+                    <input type="text" name="design_person" class="project-name-input" 
+                           placeholder="输入设计人员" value="{{ settings[4] }}">
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">显示经纬度</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="show_latlon" {% if settings[5] %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">显示海拔</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="show_altitude" {% if settings[6] %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">备注</span>
+                    <input type="text" name="remark" class="project-name-input" 
+                           placeholder="输入备注" value="{{ settings[7] }}">
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">水印位置</span>
+                    <select name="watermark_position" class="project-name-input">
+                        <option value="左下角" {% if settings[8] == '左下角' %}selected{% endif %}>左下角</option>
+                        <option value="左上角" {% if settings[8] == '左上角' %}selected{% endif %}>左上角</option>
+                        <option value="右上角" {% if settings[8] == '右上角' %}selected{% endif %}>右上角</option>
+                        <option value="右下角" {% if settings[8] == '右下角' %}selected{% endif %}>右下角</option>
+                        <option value="左中" {% if settings[8] == '左中' %}selected{% endif %}>左中</option>
+                        <option value="上中" {% if settings[8] == '上中' %}selected{% endif %}>上中</option>
+                        <option value="右中" {% if settings[8] == '右中' %}selected{% endif %}>右中</option>
+                        <option value="下中" {% if settings[8] == '下中' %}selected{% endif %}>下中</option>
+                    </select>
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">手动调整水印位置</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" name="manual_watermark" {% if settings[9] %}checked{% endif %}>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">字体样式</span>
+                    <select name="font_family" class="project-name-input">
+                        <option value="Arial" {% if settings[10] == 'Arial' %}selected{% endif %}>Arial</option>
+                        <option value="宋体" {% if settings[10] == '宋体' %}selected{% endif %}>宋体</option>
+                        <option value="黑体" {% if settings[10] == '黑体' %}selected{% endif %}>黑体</option>
+                        <option value="微软雅黑" {% if settings[10] == '微软雅黑' %}selected{% endif %}>微软雅黑</option>
+                    </select>
+                </div>
+                
+                <div class="setting-item">
+                    <span class="setting-label">字体大小</span>
+                    <select name="font_size" class="project-name-input">
+                        <option value="12" {% if settings[11] == 12 %}selected{% endif %}>12</option>
+                        <option value="14" {% if settings[11] == 14 %}selected{% endif %}>14</option>
+                        <option value="16" {% if settings[11] == 16 %}selected{% endif %}>16</option>
+                        <option value="18" {% if settings[11] == 18 %}selected{% endif %}>18</option>
+                        <option value="20" {% if settings[11] == 20 %}selected{% endif %}>20</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="save-btn">保存设置</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

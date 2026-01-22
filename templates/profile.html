@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目随手拍 - 我的</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background-color: #1e90ff;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .header h2 {
+            font-size: 20px;
+            margin: 0;
+        }
+        
+        .profile-content {
+            flex: 1;
+            padding: 0;
+            overflow-y: auto;
+            padding-bottom: 60px; /* 为底部导航栏预留空间 */
+        }
+        
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .menu-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .menu-item .menu-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: white;
+        }
+        
+        .menu-text {
+            font-size: 16px;
+        }
+        
+        .menu-arrow {
+            color: #ccc;
+            font-size: 18px;
+        }
+        
+        /* 底部导航栏 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            color: #666;
+            text-decoration: none;
+        }
+        
+        .nav-item.active {
+            color: #1e90ff;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .nav-text {
+            font-size: 12px;
+        }
+        
+        /* 版本信息 */
+        .version-info {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        
+        .file-location {
+            padding: 0 15px 15px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* 分隔线 */
+        .divider {
+            height: 10px;
+            background-color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>推荐</h2>
+        </div>
+        
+        <div class="profile-content">
+            <div class="divider"></div>
+            
+            <div class="menu-item" onclick="window.location.href='/settings'">
+                <div class="menu-left">
+                    <div class="menu-icon" style="background-color: #ffeaa7;">⚙️</div>
+                    <span class="menu-text">水印设置</span>
+                </div>
+                <span class="menu-arrow">></span>
+            </div>
+            
+            <div class="menu-item" onclick="window.location.href='/save_location'">
+                <div class="menu-left">
+                    <div class="menu-icon" style="background-color: #95e1d3;">💾</div>
+                    <span class="menu-text">图片保存位置</span>
+                </div>
+                <span class="menu-arrow">></span>
+            </div>
+            
+            <div class="menu-item" onclick="window.location.href='/register'">
+                <div class="menu-left">
+                    <div class="menu-icon" style="background-color: #e84393;">🔑</div>
+                    <span class="menu-text">注册激活</span>
+                </div>
+                <span class="menu-arrow">></span>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="version-info">
+                <p>当前版本:2.0.1</p>
+                <p style="margin-top: 10px;">
+                    <a href="#" style="color: #1e90ff;">查看"用户协议"</a>和<a href="#" style="color: #1e90ff;">"隐私政策"</a>
+                </p>
+            </div>
+            
+            <div class="file-location">
+                <p>照片位置:{{ settings[12] if settings else '存储卡->PhotoToolData文件夹下' }}</p>
+            </div>
+        </div>
+        
+        <!-- 底部导航栏 -->
+        <div class="bottom-nav">
+            <a href="/album" class="nav-item">
+                <div class="nav-icon">📷</div>
+                <div class="nav-text">相册</div>
+            </a>
+            <a href="/camera" class="nav-item">
+                <div class="nav-icon">📸</div>
+                <div class="nav-text">拍照</div>
+            </a>
+            <a href="/location" class="nav-item">
+                <div class="nav-icon">📍</div>
+                <div class="nav-text">定位</div>
+            </a>
+            <a href="/template" class="nav-item">
+                <div class="nav-icon">📋</div>
+                <div class="nav-text">模板</div>
+            </a>
+            <a href="/profile" class="nav-item active">
+                <div class="nav-icon">👤</div>
+                <div class="nav-text">我的</div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
