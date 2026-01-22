@@ -6,40 +6,59 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: kivy/buildozer:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      
       - name: Check directory structure
         run: |
+          echo "=== Step 1: Directory structure ==="
           echo "Current directory: $(pwd)"
           echo "Directory contents:"
           ls -la
+          echo "==================================="
       
-      - name: Initialize Buildozer
+      - name: Install system dependencies
         run: |
-          echo "Initializing Buildozer..."
-          buildozer init 2>&1 || echo "Buildozer init may have failed, continuing..."
-          echo "Buildozer spec file:"
-          cat buildozer.spec
+          echo "=== Step 2: System dependencies ==="
+          sudo apt-get update -y
+          sudo apt-get install -y git zip unzip openjdk-11-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          sudo apt-get install -y curl wget libxml2-dev libxslt1-dev libgl1-mesa-glx libgles2-mesa libx11-dev libxext-dev
+          echo "==================================="
       
-      - name: Install dependencies
+      - name: Install Buildozer
         run: |
-          echo "Installing dependencies..."
+          echo "=== Step 3: Install Buildozer ==="
           pip install --upgrade pip
-          pip install cython
+          pip install buildozer cython
+          echo "Buildozer version:"
+          buildozer --version
+          echo "==================================="
+      
+      - name: Install Python dependencies
+        run: |
+          echo "=== Step 4: Python dependencies ==="
           pip install kivy==2.1.0 plyer pillow==9.0.0 pygame==2.1.0
+          echo "Installed packages:"
+          pip list
+          echo "==================================="
       
       - name: Build APK
         run: |
-          echo "Building APK..."
-          buildozer -v android debug 2>&1 | tee buildozer.log
+          echo "=== Step 5: Build APK ==="
+          echo "Building APK with Buildozer..."
+          buildozer android debug 2>&1 | tee buildozer.log
+          echo "Build completed!"
+          echo "==================================="
       
       - name: Detailed APK check
         run: |
-          echo "=== Detailed APK check ==="
+          echo "=== Step 6: Detailed APK check ==="
           echo "Current directory: $(pwd)"
           echo "Contents of current directory:"
           ls -la
