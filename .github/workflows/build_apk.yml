@@ -7,86 +7,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Build with Buildozer Action
+        uses: ArtemSBulgakov/buildozer-action@v1
         with:
-          python-version: "3.9"
+          command: android debug
+          buildozer_version: stable
       
-      - name: Check directory structure
-        run: |
-          echo "=== Step 1: Directory structure ==="
-          echo "Current directory: $(pwd)"
-          echo "Directory contents:"
-          ls -la
-          echo "==================================="
-      
-      - name: Install system dependencies
-        run: |
-          echo "=== Step 2: System dependencies ==="
-          sudo apt-get update -y
-          sudo apt-get install -y git zip unzip openjdk-11-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-          sudo apt-get install -y curl wget libxml2-dev libxslt1-dev libgl1-mesa-glx libgles2-mesa libx11-dev libxext-dev
-          echo "==================================="
-      
-      - name: Install Buildozer
-        run: |
-          echo "=== Step 3: Install Buildozer ==="
-          pip install --upgrade pip
-          pip install buildozer cython
-          echo "Buildozer version:"
-          buildozer --version
-          echo "==================================="
-      
-      - name: Install Python dependencies
-        run: |
-          echo "=== Step 4: Python dependencies ==="
-          pip install kivy==2.1.0 plyer pillow==9.0.0 pygame==2.1.0
-          echo "Installed packages:"
-          pip list
-          echo "==================================="
-      
-      - name: Build APK
-        run: |
-          echo "=== Step 5: Build APK ==="
-          echo "Building APK with Buildozer..."
-          buildozer android debug 2>&1 | tee buildozer.log
-          echo "Build completed!"
-          echo "==================================="
-      
-      - name: Detailed APK check
-        run: |
-          echo "=== Step 6: Detailed APK check ==="
-          echo "Current directory: $(pwd)"
-          echo "Contents of current directory:"
-          ls -la
-          echo "Checking for bin directory:"
-          if [ -d "bin" ]; then
-            echo "bin/ directory exists"
-            echo "Contents of bin/ directory:"
-            ls -la bin/
-          else
-            echo "bin/ directory does not exist"
-          fi
-          echo "Finding all APK files in the project:"
-          find . -name "*.apk" -type f
-          echo "=== End of detailed check ==="
-      
-      - name: Upload APK
+      - name: Upload artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: |
-            bin/*.apk
-            ./*.apk
-          if-no-files-found: warn
-      
-      - name: Upload build logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-logs
-          path: buildozer.log
+          path: bin/*.apk
