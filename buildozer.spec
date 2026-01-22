@@ -1,8 +1,7 @@
 [app]
 
 # (str) Title of your application
-title = 项目随手拍
-
+title = 项目随手�?
 # (str) Package name
 package.name = projectsnapshot
 
@@ -36,7 +35,7 @@ version = 2.0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy,plyer,pillow,pygame
+requirements = python3,kivy==2.1.0,plyer,pillow==9.0.0,pygame==2.1.0
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -94,7 +93,7 @@ fullscreen = 0
 # (list) Permissions
 android.permissions = CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
 
-# (int) Target Android API, should be as high as possible. android.api = 33
+# (int) Target Android API, should be as high as possible. android.api = 31
 
 # (int) Minimum API your APK will support. android.minapi = 21
 
@@ -104,6 +103,8 @@ android.permissions = CAMERA,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,WRITE_E
 
 # (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
 android.ndk_api = 21
+android.ndk = 25.1.8937393
+android.sdk = 33
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
@@ -309,7 +310,7 @@ targets = android
 # android.ndk_version = 23b
 
 # (int) Android API to use. Should be as high as possible. 
-# android.api = 33
+# android.api = 31
 
 # (int) Minimum API your app will support 
 # android.minapi = 21
