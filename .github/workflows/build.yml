@@ -19,10 +19,21 @@ jobs:
         run: sdkmanager --install "ndk;25.2.9519653" --sdk_root=$ANDROID_HOME
       - name: Build APK
         run: |
-          buildozer -v android debug
+          echo "Building APK with Buildozer..."
+          echo "ANDROID_HOME: $ANDROID_HOME"
+          echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
+          echo "Listing ANDROID_NDK_HOME:"
+          ls -la $ANDROID_NDK_HOME || echo "NDK directory not found"
+          buildozer -v android debug | tee buildozer_log.txt
         env:
           ANDROID_HOME: $ANDROID_HOME
           ANDROID_NDK_HOME: $ANDROID_HOME/ndk/25.2.9519653
+      - name: Upload Buildozer Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-log
+          path: buildozer_log.txt
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
