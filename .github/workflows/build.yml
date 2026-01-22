@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build APK
         run: |
-          echo y | docker run --rm -v "$(pwd):/home/user/hostcwd" kivy/buildozer buildozer -v android debug
+          docker run --rm -v "$(pwd):/home/user/hostcwd" kivy/buildozer bash -c "cd /home/user/hostcwd && echo y | buildozer -v android debug"
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
