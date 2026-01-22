@@ -15,6 +15,12 @@ jobs:
         with:
           python-version: "3.10"
       
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          sudo apt-get install -y --no-install-recommends android-sdk-platform-tools-common
+      
       - name: Install dependencies
         run: |
           pip install --upgrade pip
@@ -23,10 +29,17 @@ jobs:
       - name: Build APK
         run: |
           echo "Building APK..."
-          buildozer -v android debug
+          buildozer -v android debug 2>&1 | tee buildozer.log
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk
           path: bin/*.apk
+      
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: buildozer.log
