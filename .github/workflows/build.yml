@@ -4,6 +4,21 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - name: Build APK
+        uses: docker://kivy/buildozer
+        with:
+          args: android debug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: bin/*.apkild.ymlname: Build APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v3
       - name: Build APK
         uses: docker://kivy/buildozer
@@ -11,6 +26,22 @@ jobs:
           args: android debug
       - name: Upload APK
         uses: actions/upload-artifact@v3
+        with:
+          name: apk
+          path: bin/*.apk
+name: Build APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build APK
+        uses: docker://kivy/buildozer
+        with:
+          args: android debug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: apk
           path: bin/*.apk
