@@ -1,0 +1,17 @@
+# Buildozer
+.buildozer/
+bin/
+build/
+dist/
+
+# Python
+*.pyc
+__pycache__/
+
+# Android
+*.apk
+*.aab
+
+# IDE
+.idea/
+.vscode/
