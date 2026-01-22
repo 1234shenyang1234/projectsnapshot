@@ -20,6 +20,33 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
           sudo apt-get install -y --no-install-recommends android-sdk-platform-tools-common
+          sudo apt-get install -y curl wget libxml2-dev libxslt1-dev libgl1-mesa-glx libgles2-mesa libx11-dev libxext-dev
+      
+      - name: Install Android SDK and NDK
+        run: |
+          mkdir -p ~/Android/Sdk
+          export ANDROID_HOME=~/Android/Sdk
+          export ANDROID_SDK_ROOT=~/Android/Sdk
+          
+          # Install Android Command Line Tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q commandlinetools-linux-11076708_latest.zip
+          rm commandlinetools-linux-11076708_latest.zip
+          
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          mv cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          
+          # Set up environment variables
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/25.2.9519653" >> $GITHUB_ENV
+          echo "PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/33.0.2" >> $GITHUB_ENV
+          
+          # Accept licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1
+          
+          # Install required SDK components
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;25.2.9519653" > /dev/null 2>&1
       
       - name: Install dependencies
         run: |
@@ -29,6 +56,14 @@ jobs:
       - name: Build APK
         run: |
           echo "Building APK..."
+          export ANDROID_HOME=~/Android/Sdk
+          export ANDROID_SDK_ROOT=~/Android/Sdk
+          export ANDROID_NDK_HOME=~/Android/Sdk/ndk/25.2.9519653
+          
+          # Create buildozer config directory
+          mkdir -p ~/.buildozer
+          
+          # Build APK
           buildozer -v android debug 2>&1 | tee buildozer.log
       
       - name: Upload APK
