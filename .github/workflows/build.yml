@@ -24,7 +24,26 @@ jobs:
           echo "ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
           echo "Listing ANDROID_NDK_HOME:"
           ls -la $ANDROID_NDK_HOME || echo "NDK directory not found"
-          buildozer -v android debug | tee buildozer_log.txt
+          echo "Current directory: $(pwd)"
+          echo "Listing current directory:"
+          ls -la
+          # Build APK and fail if buildozer fails
+          buildozer -v android debug > buildozer_log.txt 2>&1 || {
+            echo "Buildozer build failed!"
+            cat buildozer_log.txt
+            exit 1
+          }
+          echo "Buildozer build completed!"
+          echo "Listing bin directory:"
+          ls -la bin/ || echo "Bin directory not found"
+          # Verify APK was created
+          if [ -f bin/*.apk ]; then
+            echo "APK file found!"
+            ls -la bin/*.apk
+          else
+            echo "APK file not found!"
+            exit 1
+          fi
         env:
           ANDROID_HOME: $ANDROID_HOME
           ANDROID_NDK_HOME: $ANDROID_HOME/ndk/25.2.9519653
