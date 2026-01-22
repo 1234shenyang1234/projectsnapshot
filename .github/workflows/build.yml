@@ -5,20 +5,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-      - name: Build APK with Docker
+      - name: Install required packages
         run: |
-          # Use a pre-built Docker image with Buildozer and all dependencies
-          docker run --rm -v $(pwd):/home/user/hostcwd -w /home/user/hostcwd kivy/buildozer:latest bash -c "
-            echo 'Building APK with Buildozer in Docker...'
-            echo 'Current directory:' $(pwd)
-            echo 'Listing current directory:'
-            ls -la
-            
-            # Create buildozer.spec if it doesn't exist
-            if [ ! -f buildozer.spec ]; then
-              cat > buildozer.spec << EOF
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk python3-pip python3-venv git
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - name: Install Buildozer
+        run: |
+          python -m pip install --upgrade pip
+          pip install buildozer cython
+      - name: Build APK
+        run: |
+          echo "Building APK with Buildozer..."
+          echo "Current directory: $(pwd)"
+          echo "Listing current directory:"
+          ls -la
+          
+          # Create simple buildozer.spec
+          cat > buildozer.spec << EOF
 [app]
 title = ProjectSnapshot
 package.name = projectsnapshot
@@ -44,24 +51,23 @@ android.skip_update = True
 android.logcat_filters = *:S python:D
 android.copy_libs = 1
 android.archs = arm64-v8a, armeabi-v7a
+
+# Skip NDK download
+android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
 EOF
-            fi
-            
-            # Build APK
-            buildozer -v android debug
-          "
-      - name: Verify APK was created
-        run: |
-          echo "Listing bin directory:"
-          ls -la bin/ || echo "Bin directory not found"
           
-          if [ -f bin/*.apk ]; then
-            echo "APK file found!"
-            ls -la bin/*.apk
-          else
-            echo "APK file not found!"
+          # Build APK with detailed logs
+          buildozer -v android debug > buildozer_log.txt 2>&1 || {
+            echo "Build failed! Printing logs:"
+            cat buildozer_log.txt
             exit 1
-          fi
+          }
+      - name: Upload Buildozer Log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-log
+          path: buildozer_log.txt
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
