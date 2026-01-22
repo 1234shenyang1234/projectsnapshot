@@ -13,7 +13,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install cython wheel
-          pip install python-for-android==2023.02.01
+          pip install python-for-android==2023.2.10
           pip install kivy==2.1.0 plyer pillow==9.0.0 pygame==2.1.0
       - name: Set up Android SDK
         uses: android-actions/setup-android@v2
