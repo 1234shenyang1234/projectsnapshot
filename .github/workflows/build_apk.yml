@@ -12,23 +12,48 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Check directory structure
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+      
+      - name: Initialize Buildozer
+        run: |
+          echo "Initializing Buildozer..."
+          buildozer init 2>&1 || echo "Buildozer init may have failed, continuing..."
+          echo "Buildozer spec file:"
+          cat buildozer.spec
+      
       - name: Install dependencies
         run: |
+          echo "Installing dependencies..."
           pip install --upgrade pip
           pip install cython
+          pip install kivy==2.1.0 plyer pillow==9.0.0 pygame==2.1.0
       
       - name: Build APK
         run: |
           echo "Building APK..."
           buildozer -v android debug 2>&1 | tee buildozer.log
-          echo "Build completed. Checking for APK files..."
-          ls -la
-          ls -la bin/ 2>/dev/null || echo "bin/ directory not found"
       
-      - name: Find APK files
+      - name: Detailed APK check
         run: |
-          echo "Finding APK files in the project..."
+          echo "=== Detailed APK check ==="
+          echo "Current directory: $(pwd)"
+          echo "Contents of current directory:"
+          ls -la
+          echo "Checking for bin directory:"
+          if [ -d "bin" ]; then
+            echo "bin/ directory exists"
+            echo "Contents of bin/ directory:"
+            ls -la bin/
+          else
+            echo "bin/ directory does not exist"
+          fi
+          echo "Finding all APK files in the project:"
           find . -name "*.apk" -type f
+          echo "=== End of detailed check ==="
       
       - name: Upload APK
         if: always()
