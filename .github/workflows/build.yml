@@ -19,28 +19,26 @@ jobs:
         uses: android-actions/setup-android@v2
       - name: Install Android NDK
         run: sdkmanager --install "ndk;25.2.9519653" --sdk_root=$ANDROID_HOME
-      - name: Build APK with python-for-android
+      - name: Build APK with p4a
         run: |
-          echo "Building APK with python-for-android..."
+          echo "Building APK with p4a..."
           echo "ANDROID_HOME: $ANDROID_HOME"
           echo "ANDROID_NDK_HOME: $ANDROID_HOME/ndk/25.2.9519653"
           echo "Current directory: $(pwd)"
           echo "Listing current directory:"
           ls -la
           
-          # Create p4a project directory
-          mkdir -p p4a_project
-          
           # Create requirements file
-          echo "python3"
-          echo "kivy==2.1.0"
-          echo "plyer"
-          echo "pillow==9.0.0"
-          echo "pygame==2.1.0"
-          > requirements.txt
+          cat > requirements.txt << EOF
+python3
+kivy==2.1.0
+plyer
+pillow==9.0.0
+pygame==2.1.0
+EOF
           
-          # Build APK using python-for-android
-          python -m pythonforandroid apk --debug --bootstrap=sdl2 --requirements=python3,kivy==2.1.0,plyer,pillow==9.0.0,pygame==2.1.0 --arch=arm64-v8a,armeabi-v7a --dist_name=ProjectSnapshot --package=org.projectsnapshot.projectsnapshot --version=2.0.1 --android_api=31 --ndk_version=25.2.9519653 --ndk_dir=$ANDROID_HOME/ndk/25.2.9519653 --sdk_dir=$ANDROID_HOME
+          # Build APK using p4a command
+          p4a apk --debug --bootstrap=sdl2 --requirements=python3,kivy==2.1.0,plyer,pillow==9.0.0,pygame==2.1.0 --arch=arm64-v8a,armeabi-v7a --dist_name=ProjectSnapshot --package=org.projectsnapshot.projectsnapshot --version=2.0.1 --android_api=31 --ndk_version=25.2.9519653 --ndk_dir=$ANDROID_HOME/ndk/25.2.9519653 --sdk_dir=$ANDROID_HOME
           
           # Verify APK was created
           echo "Listing bin directory:"
